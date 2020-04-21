@@ -1,8 +1,9 @@
 import vk_api
+from vk_api import VkUpload
 
 
 def get_photo(owner, album):
-    login, password = '79037726038', 'perf2004@@lo'
+    login, password = '79037726038', 'password'
     vk_session = vk_api.VkApi(login, password)
     try:
         vk_session.auth(token_only=True)
@@ -30,7 +31,7 @@ def photo_messages(photos):
         print(error_msg)
 
     vk = vk_session.get_api()
-    print(vk.photos.getMessagesUploadServer())
+    up = VkUpload(vk)
     url = vk.photos.getMessagesUploadServer()['upload_url']
     print(photos)
     photo_files = vk.open_files(photos)
