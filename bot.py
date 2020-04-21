@@ -1,7 +1,7 @@
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
-from defs import get_photo, photo_messages
+from vk_api import VkUpload
 
 
 def main():
@@ -16,7 +16,9 @@ def main():
             vk = vk_session.get_api()
 
             response = vk.users.get(user_id=event.obj.message['from_id'])
-            print(photo_messages('static/img/cities/pic{}'.format(str(1))))
+            up = VkUpload
+            up.photo_messages('static/img/cities/pic{}'.format(str(1)), event.obj.message['from_id'])
+
             vk.messages.send(user_id=event.obj.message['from_id'],
                              message=('Здравствуйте, {}'.format(response[0]['first_name'])),
                              random_id=random.randint(0, 2 ** 64))
