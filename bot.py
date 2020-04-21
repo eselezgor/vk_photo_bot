@@ -17,11 +17,10 @@ def main():
 
             response = vk.users.get(user_id=event.obj.message['from_id'])
             up = VkUpload(vk)
-            up.photo_messages('static/img/cities/pic{}.jpg'.format(str(1)),
-                              event.obj.message['from_id'])
 
             vk.messages.send(user_id=event.obj.message['from_id'],
                              message=('Здравствуйте, {}'.format(response[0]['first_name'])),
+                             attachment=up.photo_messages('static/img/cities/pic{}.jpg'.format(str(1))),
                              random_id=random.randint(0, 2 ** 64))
 
 
