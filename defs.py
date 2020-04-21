@@ -34,9 +34,9 @@ def photo_messages(photos):
     up = VkUpload(vk)
     url = vk.photos.getMessagesUploadServer()['upload_url']
     print(photos)
-    photo_files = vk.open_files(photos)
-    response = vk._vk.http.post(url, files=photo_files)
-    vk.close_files(photo_files)
+    photo_files = up.vk.open_files(photos)
+    response = up.vk._vk.http.post(url, files=photo_files)
+    up.vk.close_files(photo_files)
 
     response = vk.method('photos.saveMessagesPhoto', response.json())
 
