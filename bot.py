@@ -16,7 +16,7 @@ def main():
             vk = vk_session.get_api()
 
             response = vk.users.get(user_id=event.obj.message['from_id'])
-            up = VkUpload
+            up = VkUpload()
             up.photo_messages('static/img/cities/pic{}'.format(str(1)), event.obj.message['from_id'])
 
             vk.messages.send(user_id=event.obj.message['from_id'],
