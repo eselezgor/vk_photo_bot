@@ -2,6 +2,8 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 from vk_api import VkUpload
+from vk_api.keyboard import VkKeyboard
+from defs import add_button
 
 
 def main():
@@ -15,13 +17,20 @@ def main():
         if event.type == VkBotEventType.MESSAGE_NEW:
             vk = vk_session.get_api()
 
+            keyboard = VkKeyboard(one_time=True)
+            keyboard = add_button(keyboard, 'Фото по категориям', new_line=False)
+            keyboard = add_button(keyboard, 'Рассылка фото')
+            keyboard = add_button(keyboard, 'Тесты про фотографию')
+            keyboard = add_button(keyboard, 'Рассылка интересных фактов про фото')
+            keyboard = add_button(keyboard, 'Игры на внимательность')
+
             response = vk.users.get(user_id=event.obj.message['from_id'])
             up = VkUpload(vk)
             mes = up.photo_messages('static/img/cities/pic{}.jpg'.format(str(1)))[0]
-            print(mes)
             vk.messages.send(user_id=event.obj.message['from_id'],
                              message=('Здравствуйте, {}'.format(response[0]['first_name'])),
                              attachment=f"photo{mes['owner_id']}_{mes['id']}",
+                             keyboard=keyboard.get_keyboard(),
                              random_id=random.randint(0, 2 ** 64))
 
 
