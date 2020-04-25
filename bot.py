@@ -3,13 +3,23 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 from vk_api import VkUpload
 from vk_api.keyboard import VkKeyboard
-from defs import add_button
+from defs import add_button, add_mailing, mailing_check, get_photo
 import os.path
+from data import db_session
 
 
 def main():
     vk_session = vk_api.VkApi(
         token='ab948e1d036b8d2e340bd6e2e66799330708cb59317956632f06a93d4f18f2ad6d89d51cb6683f0479cbd')
+
+    db_session.global_init("db/mailing.sqlite")
+    id = mailing_check()
+    if not id == '':
+        vk = vk_session.get_api()
+        vk.messages.send(user_id=id,
+                         message=('Здравствуйте! Рассылка фото'),
+                         attachment=random.choice(get_photo(-194151011, 271928593)),
+                         random_id=random.randint(0, 2 ** 64))
 
     longpoll = VkBotLongPoll(vk_session, 194151011)
 
@@ -45,18 +55,34 @@ def main():
 
                 mes = up.photo_messages('static/img/{}/pic{}.jpg'.format(group, str(random.randint(1, num_files))))[0]
                 vk.messages.send(user_id=event.obj.message['from_id'],
-                                 message=('Здравствуйте, {}'.format(response[0]['first_name'])),
+                                 message=(''),
                                  attachment=f"photo{mes['owner_id']}_{mes['id']}",
                                  random_id=random.randint(0, 2 ** 64))
 
             elif text == 'Рассылка фото':
                 keyboard = add_button(keyboard, 'Каждый день', new_line=False)
-                keyboard = add_button(keyboard, 'Раз в три дня')
+                keyboard = add_button(keyboard, 'Два раза в неделю')
                 keyboard = add_button(keyboard, 'Раз в неделю')
                 keyboard = add_button(keyboard, 'Отписаться от рассылки')
                 vk.messages.send(user_id=event.obj.message['from_id'],
-                                 message=(''),
+                                 message=('Выберите частоту'),
                                  keyboard=keyboard.get_keyboard(),
+                                 random_id=random.randint(0, 2 ** 64))
+
+            elif text == 'Каждый день' or text == 'Два раза в неделю' or text == 'Раз в неделю':
+                db_session.global_init("db/mailing.sqlite")
+
+                if text == 'Каждый день':
+                    times_a_week = 7
+                elif text == 'Два раза в неделю':
+                    times_a_week = 2
+                else:
+                    times_a_week = 1
+                add_mailing(event.obj.message['from_id'], times_a_week)
+
+                vk.messages.send(user_id=event.obj.message['from_id'],
+                                 message=('Вы подписались на рассылку фото {}. Чтобы отменить рассылку, выберите '
+                                          '"Отисаться от рассылки" в меню "Рассылка фото"'.format(text.lower())),
                                  random_id=random.randint(0, 2 ** 64))
 
             elif text == 'Тесты про фотографию':
