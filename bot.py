@@ -4,6 +4,7 @@ import random
 from vk_api import VkUpload
 from vk_api.keyboard import VkKeyboard
 from defs import add_button
+import os.path
 
 
 def main():
@@ -27,22 +28,52 @@ def main():
                                  message=('Выберите категорию'),
                                  keyboard=keyboard.get_keyboard(),
                                  random_id=random.randint(0, 2 ** 64))
-            elif text == 'Рассылка фото':
+
+            elif text == 'Города' or text == 'Горы' or text == 'Игры':
+                up = VkUpload(vk)
+                if text == 'Города':
+                    group = 'cities'
+                elif text == 'Горы':
+                    group = 'mountains'
+                else:
+                    group = 'games'
+
+                # Считаю количество файлов в папке
+                path = 'static/img/{}'.format(group)
+                num_files = len([f for f in os.listdir(path)
+                                 if os.path.isfile(os.path.join(path, f))])
+
+                mes = up.photo_messages('static/img/{}/pic{}.jpg'.format(group, str(random.randint(1, num_files))))[0]
                 vk.messages.send(user_id=event.obj.message['from_id'],
-                                 message=('Извините, эта функция пока не поддерживается'),
+                                 message=('Здравствуйте, {}'.format(response[0]['first_name'])),
+                                 attachment=f"photo{mes['owner_id']}_{mes['id']}",
                                  random_id=random.randint(0, 2 ** 64))
+
+            elif text == 'Рассылка фото':
+                keyboard = add_button(keyboard, 'Каждый день', new_line=False)
+                keyboard = add_button(keyboard, 'Раз в три дня')
+                keyboard = add_button(keyboard, 'Раз в неделю')
+                keyboard = add_button(keyboard, 'Отписаться от рассылки')
+                vk.messages.send(user_id=event.obj.message['from_id'],
+                                 message=(''),
+                                 keyboard=keyboard.get_keyboard(),
+                                 random_id=random.randint(0, 2 ** 64))
+
             elif text == 'Тесты про фотографию':
                 vk.messages.send(user_id=event.obj.message['from_id'],
                                  message=('Извините, эта функция пока не поддерживается'),
                                  random_id=random.randint(0, 2 ** 64))
+
             elif text == 'Рассылка интересных фактов про фото':
                 vk.messages.send(user_id=event.obj.message['from_id'],
                                  message=('Извините, эта функция пока не поддерживается'),
                                  random_id=random.randint(0, 2 ** 64))
+
             elif text == 'Игры на внимательность':
                 vk.messages.send(user_id=event.obj.message['from_id'],
                                  message=('Извините, эта функция пока не поддерживается'),
                                  random_id=random.randint(0, 2 ** 64))
+
             else:
                 keyboard = add_button(keyboard, 'Фото по категориям', new_line=False)
                 keyboard = add_button(keyboard, 'Рассылка фото')
