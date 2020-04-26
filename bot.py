@@ -3,9 +3,9 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 from vk_api import VkUpload
 from vk_api.keyboard import VkKeyboard
-from defs import add_button, add_mailing, mailing_check, get_photo
+from defs import add_button, add_mailing, mailing_check, get_photo, del_mailing
 import os.path
-from data import db_session
+from data import db_session, mailing
 
 
 def main():
@@ -26,10 +26,13 @@ def main():
     for event in longpoll.listen():
 
         if event.type == VkBotEventType.MESSAGE_NEW:
+            main_menu = True
+            main_menu_text = False
             vk = vk_session.get_api()
             response = vk.users.get(user_id=event.obj.message['from_id'])
             text = event.obj.message['text']
             keyboard = VkKeyboard(one_time=True)
+
             if text == 'Фото по категориям':
                 keyboard = add_button(keyboard, 'Города', new_line=False)
                 keyboard = add_button(keyboard, 'Игры')
@@ -38,6 +41,7 @@ def main():
                                  message=('Выберите категорию'),
                                  keyboard=keyboard.get_keyboard(),
                                  random_id=random.randint(0, 2 ** 64))
+                main_menu = False
 
             elif text == 'Города' or text == 'Горы' or text == 'Игры':
                 up = VkUpload(vk)
@@ -68,6 +72,7 @@ def main():
                                  message=('Выберите частоту'),
                                  keyboard=keyboard.get_keyboard(),
                                  random_id=random.randint(0, 2 ** 64))
+                main_menu = False
 
             elif text == 'Каждый день' or text == 'Два раза в неделю' or text == 'Раз в неделю':
                 db_session.global_init("db/mailing.sqlite")
@@ -78,11 +83,25 @@ def main():
                     times_a_week = 2
                 else:
                     times_a_week = 1
-                add_mailing(event.obj.message['from_id'], times_a_week)
 
+                session = db_session.create_session()
+                text_message = 'Вы подписались на рассылку фото {}. Чтобы отменить рассылку, выберите "Отисаться от' \
+                               ' рассылки" в меню "Рассылка фото"'.format(text.lower())
+                for user in session.query(mailing.Mailing).all():
+                    if user.id == event.obj.message['from_id']:
+                        del_mailing(event.obj.message['from_id'])
+                        text_message = 'Вы поменяли частоту рассылки на {}. Чтобы отменить рассылку, выберите ' \
+                                       '"Отисаться от рассылки" в меню "Рассылка фото"'.format(text.lower())
+                        break
+                add_mailing(event.obj.message['from_id'], times_a_week)
                 vk.messages.send(user_id=event.obj.message['from_id'],
-                                 message=('Вы подписались на рассылку фото {}. Чтобы отменить рассылку, выберите '
-                                          '"Отисаться от рассылки" в меню "Рассылка фото"'.format(text.lower())),
+                                 message=(text_message),
+                                 random_id=random.randint(0, 2 ** 64))
+
+            elif text == 'Отписаться от рассылки':
+                del_mailing(event.obj.message['from_id'])
+                vk.messages.send(user_id=event.obj.message['from_id'],
+                                 message=('Вы отписались от рассылки'),
                                  random_id=random.randint(0, 2 ** 64))
 
             elif text == 'Тесты про фотографию':
@@ -99,21 +118,29 @@ def main():
                 vk.messages.send(user_id=event.obj.message['from_id'],
                                  message=('Извините, эта функция пока не поддерживается'),
                                  random_id=random.randint(0, 2 ** 64))
-
             else:
+                main_menu_text = True
+
+            if main_menu:
                 keyboard = add_button(keyboard, 'Фото по категориям', new_line=False)
                 keyboard = add_button(keyboard, 'Рассылка фото')
                 keyboard = add_button(keyboard, 'Тесты про фотографию')
                 keyboard = add_button(keyboard, 'Рассылка интересных фактов про фото')
                 keyboard = add_button(keyboard, 'Игры на внимательность')
 
-                up = VkUpload(vk)
-                mes = up.photo_messages('static/img/cities/pic{}.jpg'.format(str(1)))[0]
-                vk.messages.send(user_id=event.obj.message['from_id'],
-                                 message=('Здравствуйте, {}'.format(response[0]['first_name'])),
-                                 attachment=f"photo{mes['owner_id']}_{mes['id']}",
-                                 keyboard=keyboard.get_keyboard(),
-                                 random_id=random.randint(0, 2 ** 64))
+                if main_menu_text:
+                    up = VkUpload(vk)
+                    mes = up.photo_messages('static/img/cities/pic{}.jpg'.format(str(1)))[0]
+                    vk.messages.send(user_id=event.obj.message['from_id'],
+                                     message=('Здравствуйте, {}'.format(response[0]['first_name'])),
+                                     attachment=f"photo{mes['owner_id']}_{mes['id']}",
+                                     keyboard=keyboard.get_keyboard(),
+                                     random_id=random.randint(0, 2 ** 64))
+                else:
+                    vk.messages.send(user_id=event.obj.message['from_id'],
+                                     message=('Выберите категорию'),
+                                     keyboard=keyboard.get_keyboard(),
+                                     random_id=random.randint(0, 2 ** 64))
 
 
 if __name__ == '__main__':

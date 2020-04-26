@@ -35,6 +35,12 @@ def add_mailing(id, how_often):
     session.commit()
 
 
+def del_mailing(id):
+    session = db_session.create_session()
+    session.query(Mailing).filter(Mailing.id == id).delete()
+    session.commit()
+
+
 def mailing_check():
     """Проверка рассылки"""
 
