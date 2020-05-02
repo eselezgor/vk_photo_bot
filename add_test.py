@@ -5,7 +5,7 @@ from data.tests import Tests
 
 """Добавление теста в таблицу"""
 
-new_test = Tests
+new_test = Tests()
 new_test.question = input('Вопрос')
 new_test.answer_choice = input('Варианты ответа через "**"')
 new_test.answer = input('Правильный ответ')
