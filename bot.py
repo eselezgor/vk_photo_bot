@@ -52,7 +52,7 @@ def main():
                 else:
                     group = 'games'
 
-                # Считаю количество файлов в папке
+                # Подсчёт количества файлов в папке
                 path = 'static/img/{}'.format(group)
                 num_files = len([f for f in os.listdir(path)
                                  if os.path.isfile(os.path.join(path, f))])
