@@ -7,6 +7,7 @@ class Tests(SqlAlchemyBase):
 
     __tablename__ = 'tests'
 
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     question = sqlalchemy.Column(sqlalchemy.String)
     answer_choice = sqlalchemy.Column(sqlalchemy.String)  # Четыре варианта ответа через **
     answer = sqlalchemy.Column(sqlalchemy.String)
