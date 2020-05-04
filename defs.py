@@ -1,8 +1,10 @@
 import vk_api
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from data.mailing import Mailing
+from data.tests import Tests
 from data import db_session
 import datetime
+import random
 
 
 def get_photo(owner, album):
@@ -50,6 +52,15 @@ def mailing_check():
             mail.next_send = datetime.datetime.now() + datetime.timedelta(days=(7 / mail.how_often))
             return mail.id
     return ''
+
+
+def get_random_test():
+    """Получение случайного теста"""
+
+    session = db_session.create_session()
+    id_count = session.query(Tests).last().id
+    test = session.query(Tests).filter(Tests.id == random.randint(1, id_count + 1)).first()
+    return [test.question, test.answer_choice, test.answer]
 
 
 def add_button(keyboard, text, new_line=True):
