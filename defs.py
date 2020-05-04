@@ -58,7 +58,8 @@ def get_random_test():
     """Получение случайного теста"""
 
     session = db_session.create_session()
-    id_count = session.query(Tests).last().id
+    id_count = len(session.query(Tests).all())
+    print(session.query(Tests))
     test = session.query(Tests).filter(Tests.id == random.randint(1, id_count + 1)).first()
     return [test.question, test.answer_choice, test.answer]
 

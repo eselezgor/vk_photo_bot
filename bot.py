@@ -15,7 +15,7 @@ def main():
     vk_session = vk_api.VkApi(
         token='ab948e1d036b8d2e340bd6e2e66799330708cb59317956632f06a93d4f18f2ad6d89d51cb6683f0479cbd')
 
-    menu_type = ''  # main_menu, test, photo_category, mailing
+    menu_type = 'main_menu'  # main_menu, test, photo_category, mailing
 
     longpoll = VkBotLongPoll(vk_session, 194151011)
 
@@ -31,8 +31,6 @@ def main():
                              random_id=random.randint(0, 2 ** 64))
 
         if event.type == VkBotEventType.MESSAGE_NEW:
-            main_menu = True
-            main_menu_text = False
             vk = vk_session.get_api()
             response = vk.users.get(user_id=event.obj.message['from_id'])
             text = event.obj.message['text']
@@ -122,8 +120,22 @@ def main():
 
                 vk.messages.send(user_id=event.obj.message['from_id'],
                                  message=(test[0]),
+                                 keyboard=keyboard.get_keyboard(),
                                  random_id=random.randint(0, 2 ** 64))
+                answer = test[2]
                 menu_type = 'test'
+
+            if menu_type == 'test':
+                if text == answer:
+                    vk.messages.send(user_id=event.obj.message['from_id'],
+                                     message=('Поздравляем! Вы ответили правильно!'),
+                                     random_id=random.randint(0, 2 ** 64))
+                else:
+                    vk.messages.send(user_id=event.obj.message['from_id'],
+                                     message=('К сожалению, Вы ошиблись. Правильный ответ: {}'.format(answer)),
+                                     random_id=random.randint(0, 2 ** 64))
+
+                menu_type = 'main_menu'
 
             elif text == 'Рассылка интересных фактов про фото':
                 vk.messages.send(user_id=event.obj.message['from_id'],
